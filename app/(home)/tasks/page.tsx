@@ -1,23 +1,21 @@
 import { TaskDataTable } from "@/components/task-data-table";
+import { API } from "@/lib/contants";
 import { format } from "date-fns";
 import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
 
 export default async function Page() {
   const projectsRes = await fetch(
-    "http://localhost:8080/api/v1/projects?pageNumber=1&pageSize=10000"
+    API + "/projects?pageNumber=1&pageSize=10000"
   );
   const projectData = await projectsRes.json();
 
-  const userRes = await fetch(
-    "http://localhost:8080/api/v1/users?pageNumber=1&pageSize=10000"
-  );
+  const userRes = await fetch(API + "/users?pageNumber=1&pageSize=10000");
   const userData = await userRes.json();
 
-  const res = await fetch(
-    "http://localhost:8080/api/v1/tasks?pageNumber=1&pageSize=10000",
-    { next: { tags: ["tasks"] } }
-  );
+  const res = await fetch(API + "/tasks?pageNumber=1&pageSize=10000", {
+    next: { tags: ["tasks"] },
+  });
   const data = await res.json();
 
   async function create(formData: FormData) {
@@ -45,7 +43,7 @@ export default async function Page() {
     if (assignedTo) payload.assignedTo = assignedTo;
     if (dueDate) payload.dueDate = dueDate;
 
-    const res = await fetch("http://localhost:8080/api/v1/tasks/", {
+    const res = await fetch(API + "/tasks/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -89,7 +87,7 @@ export default async function Page() {
     if (assignedTo) payload.assignedTo = assignedTo;
     if (dueDate) payload.dueDate = format(dueDate, "yyyy-MM-dd");
 
-    const res = await fetch("http://localhost:8080/api/v1/tasks/" + id, {
+    const res = await fetch(API + "/tasks/" + id, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -114,7 +112,7 @@ export default async function Page() {
     const token = (await cookies()).get("token")?.value;
     if (!token) throw new Error("Unauthorized");
 
-    const res = await fetch("http://localhost:8080/api/v1/tasks/" + id, {
+    const res = await fetch(API + "/tasks/" + id, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

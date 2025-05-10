@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import * as React from "react";
@@ -30,12 +31,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { z } from "zod";
-import {
-  Controller,
-  FormProvider,
-  useForm,
-  useFormContext,
-} from "react-hook-form";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import {
@@ -129,7 +125,6 @@ export function TaskDataTable({
   update: (formData: FormData) => void;
   deleteTask: (id: string) => void;
 }) {
-  console.log(initialData);
   const [data, setData] = React.useState(() => initialData);
 
   const [rowSelection, setRowSelection] = React.useState({});
@@ -145,7 +140,7 @@ export function TaskDataTable({
   });
 
   const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => data?.map(({ id }) => id) || [],
+    () => data?.map(({ _id }) => _id) || [],
     [data]
   );
 
@@ -174,7 +169,6 @@ export function TaskDataTable({
 
     setData((prev) => prev.filter((item) => item._id !== id));
   };
-  console.log(data);
 
   const columns: ColumnDef<z.infer<typeof taskSchema>>[] = [
     {
@@ -435,7 +429,7 @@ function TableCellViewer({
 }) {
   const isMobile = useIsMobile();
 
-  async function handleSubmitUpdate(data) {
+  async function handleSubmitUpdate(data: any) {
     // e.preventDefault();
 
     const formData = new FormData();
@@ -636,7 +630,7 @@ function TableCellViewer({
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={field.value}
+                            selected={field.value as any}
                             onSelect={field.onChange}
                             disabled={(date) =>
                               date < new Date() || date < new Date("1900-01-01")

@@ -1,10 +1,9 @@
 import { ProjectDataTable } from "@/components/project-data-table";
+import { API } from "@/lib/contants";
 import { cookies } from "next/headers";
 
 export default async function Page() {
-  const res = await fetch(
-    "http://localhost:8080/api/v1/projects?pageNumber=1&pageSize=10000"
-  );
+  const res = await fetch(API + "/projects?pageNumber=1&pageSize=10000");
   const data = await res.json();
 
   async function getDetail(id: string) {
@@ -13,7 +12,7 @@ export default async function Page() {
     const token = (await cookies()).get("token")?.value;
     if (!token) throw new Error("Unauthorized");
 
-    const res = await fetch("http://localhost:8080/api/v1/projects/" + id, {
+    const res = await fetch(API + "/projects/" + id, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -38,7 +37,7 @@ export default async function Page() {
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
 
-    const res = await fetch("http://localhost:8080/api/v1/projects/", {
+    const res = await fetch(API + "/projects/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -64,7 +63,7 @@ export default async function Page() {
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
 
-    const res = await fetch("http://localhost:8080/api/v1/projects/" + id, {
+    const res = await fetch(API + "/projects/" + id, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -87,7 +86,7 @@ export default async function Page() {
     const token = (await cookies()).get("token")?.value;
     if (!token) throw new Error("Unauthorized");
 
-    const res = await fetch("http://localhost:8080/api/v1/projects/" + id, {
+    const res = await fetch(API + "/projects/" + id, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

@@ -2,10 +2,9 @@
 
 import { CloudAlertIcon } from "lucide-react";
 
-export default function ErrorComponent({ onReset }: { onReset?: () => void }) {
+export default function ErrorComponent() {
   return (
     <div
-      onClick={onReset ?? null}
       className={
         "flex h-full w-full cursor-pointer flex-col items-center justify-center gap-[4px] "
       }

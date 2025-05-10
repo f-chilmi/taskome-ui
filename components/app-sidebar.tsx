@@ -4,7 +4,6 @@ import * as React from "react";
 import {
   IconDashboard,
   IconFolder,
-  IconInnerShadowTop,
   IconListDetails,
 } from "@tabler/icons-react";
 
