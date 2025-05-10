@@ -55,6 +55,7 @@ import { projectSchema, taskSchema, userSchema } from "@/types/schemas";
 import TableCellViewer from "./table-cell";
 import { Input } from "../ui/input";
 import { format } from "date-fns";
+import { ArrowDown, ArrowUp } from "lucide-react";
 
 function DraggableRow({ row }: { row: Row<z.infer<typeof taskSchema>> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
@@ -197,6 +198,7 @@ export function TaskDataTable({
     {
       accessorKey: "title",
       header: "Title",
+      sortingFn: "alphanumeric",
       minSize: 300,
       size: 300,
       maxSize: Number.MAX_SAFE_INTEGER,
@@ -286,6 +288,7 @@ export function TaskDataTable({
     {
       accessorKey: "dueDate",
       header: "Due Date",
+      sortingFn: "datetime",
       maxSize: 30,
       cell: ({ row }) => {
         const dueDate = row.original.dueDate;
@@ -338,7 +341,7 @@ export function TaskDataTable({
             onDelete={function (): void {}}
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Select
             onValueChange={(value) => onFilter("projectId", value)}
             value={filters.projectId}
@@ -424,13 +427,37 @@ export function TaskDataTable({
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id} colSpan={header.colSpan}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                      // <TableHead key={header.id} colSpan={header.colSpan}>
+                      //   {header.isPlaceholder
+                      //     ? null
+                      //     : flexRender(
+                      //         header.column.columnDef.header,
+                      //         header.getContext()
+                      //       )}
+
+                      // </TableHead>
+                      <TableHead
+                        key={header.id}
+                        className="cursor-pointer select-none "
+                        onClick={() =>
+                          header.column.getCanSort() &&
+                          header.column.toggleSorting(
+                            header.column.getIsSorted() === "asc"
+                          )
+                        }
+                      >
+                        <div className="flex gap-2 items-center">
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                          {header.column.getIsSorted() === "asc" && (
+                            <ArrowUp size="18" className="text-gray-600" />
+                          )}
+                          {header.column.getIsSorted() === "desc" && (
+                            <ArrowDown size="18" className="text-gray-600" />
+                          )}
+                        </div>
                       </TableHead>
                     );
                   })}
