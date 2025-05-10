@@ -1,4 +1,5 @@
 import { SignupForm } from "@/components/signup-form";
+import { API } from "@/lib/contants";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -9,7 +10,7 @@ export default function Page() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    const res = await fetch("http://localhost:8080/api/v1/auth/register", {
+    const res = await fetch(API + "/v1/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password }),

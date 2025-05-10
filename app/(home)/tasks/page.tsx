@@ -1,4 +1,4 @@
-import { TaskDataTable } from "@/components/task-data-table";
+import { TaskDataTable } from "@/components/task/task-data-table";
 import { API } from "@/lib/contants";
 import { format } from "date-fns";
 import { revalidateTag } from "next/cache";

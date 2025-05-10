@@ -22,7 +22,7 @@ export const taskSchema = z.object({
   project: z
     .object({
       _id: z.string(),
-      title: z.string(),
+      name: z.string(),
       description: z.string(),
     })
     .optional(),
