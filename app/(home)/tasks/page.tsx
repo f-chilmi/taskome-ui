@@ -41,7 +41,7 @@ export default async function Page() {
     if (priority) payload.priority = priority;
     if (projectId) payload.projectId = projectId;
     if (assignedTo) payload.assignedTo = assignedTo;
-    if (dueDate) payload.dueDate = dueDate;
+    if (dueDate) payload.dueDate = format(dueDate, "yyyy-MM-dd");
 
     const res = await fetch(API + "/tasks/", {
       method: "POST",

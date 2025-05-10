@@ -53,6 +53,8 @@ import { PriorityEnum, StatusEnum } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { projectSchema, taskSchema, userSchema } from "@/types/schemas";
 import TableCellViewer from "./table-cell";
+import { Input } from "../ui/input";
+import { format } from "date-fns";
 
 function DraggableRow({ row }: { row: Row<z.infer<typeof taskSchema>> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
@@ -121,6 +123,13 @@ export function TaskDataTable({
     pageSize: 10,
   });
 
+  const [filters, setFilters] = React.useState({
+    status: "",
+    priority: "",
+    projectId: "",
+    assignedTo: "",
+  });
+
   const dataIds = React.useMemo<UniqueIdentifier[]>(
     () => data?.map(({ _id }) => _id) || [],
     [data]
@@ -150,6 +159,38 @@ export function TaskDataTable({
     deleteTask(id);
 
     setData((prev) => prev.filter((item) => item._id !== id));
+  };
+
+  const onSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const text = e.target.value;
+
+    setData((prev) =>
+      prev.filter((t) => t.title.toLowerCase().includes(text.toLowerCase()))
+    );
+  };
+
+  const onFilter = (type: keyof typeof filters, value: string) => {
+    setFilters((prev) => {
+      const newFilters = { ...prev, [type]: value };
+
+      setData(
+        initialData.filter((t) =>
+          Object.entries(newFilters).every(([key, val]) =>
+            val
+              ? (t as any)[key as "status" | "priority"]
+                  ?.toLowerCase()
+                  .includes(val.toLowerCase())
+              : true
+          )
+        )
+      );
+      return newFilters;
+    });
+  };
+
+  const resetFilter = () => {
+    setFilters({ status: "", priority: "", projectId: "", assignedTo: "" });
+    setData(initialData);
   };
 
   const columns: ColumnDef<z.infer<typeof taskSchema>>[] = [
@@ -242,6 +283,19 @@ export function TaskDataTable({
       },
       enableHiding: false,
     },
+    {
+      accessorKey: "dueDate",
+      header: "Due Date",
+      maxSize: 30,
+      cell: ({ row }) => {
+        const dueDate = row.original.dueDate;
+
+        if (!dueDate) return <div className="text-gray-600">No due date</div>;
+
+        return <div>{format(new Date(dueDate), "PPP")}</div>;
+      },
+      enableHiding: false,
+    },
   ];
 
   const table = useReactTable({
@@ -272,15 +326,97 @@ export function TaskDataTable({
   return (
     <div defaultValue="outline" className="w-full flex-col justify-start gap-6">
       <div className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
-        <TableCellViewer
-          projectData={projectData}
-          userData={userData}
-          isNew
-          item={{ title: "", description: "", _id: "" }}
-          create={onCreate}
-          update={function (): void {}}
-          onDelete={function (): void {}}
-        />
+        <div className="flex gap-2">
+          <Input id="search" placeholder="Search..." onChange={onSearch} />
+          <TableCellViewer
+            projectData={projectData}
+            userData={userData}
+            isNew
+            item={{ title: "", description: "", _id: "" }}
+            create={onCreate}
+            update={function (): void {}}
+            onDelete={function (): void {}}
+          />
+        </div>
+        <div className="flex gap-2">
+          <Select
+            onValueChange={(value) => onFilter("projectId", value)}
+            value={filters.projectId}
+          >
+            <SelectTrigger id="project" className="w-fit">
+              <SelectValue placeholder="Project" />
+            </SelectTrigger>
+            <SelectContent>
+              {projectData.map((project) => (
+                <SelectItem value={project._id} key={project._id}>
+                  {project.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            onValueChange={(value) => onFilter("assignedTo", value)}
+            value={filters.assignedTo}
+          >
+            <SelectTrigger id="assignee" className="w-fit">
+              <SelectValue placeholder="Assignee" />
+            </SelectTrigger>
+            <SelectContent>
+              {userData.map((user) => (
+                <SelectItem value={user._id} key={user._id}>
+                  {user.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            onValueChange={(value) => onFilter("status", value)}
+            value={filters.status}
+          >
+            <SelectTrigger id="status" className="w-fit">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              {[
+                StatusEnum.NOT_STARTED,
+                StatusEnum.IN_PROGRESS,
+                StatusEnum.DONE,
+              ].map((status) => (
+                <SelectItem
+                  key={status}
+                  value={status}
+                  className={statusColorMap[status]}
+                >
+                  {status}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            onValueChange={(value) => onFilter("priority", value)}
+            value={filters.priority}
+          >
+            <SelectTrigger id="priority" className="w-fit">
+              <SelectValue placeholder="Priority" />
+            </SelectTrigger>
+            <SelectContent>
+              {[PriorityEnum.LOW, PriorityEnum.MEDIUM, PriorityEnum.HIGH].map(
+                (priority) => (
+                  <SelectItem
+                    key={priority}
+                    value={priority}
+                    className={priorityColorMap[priority]}
+                  >
+                    {priority}
+                  </SelectItem>
+                )
+              )}
+            </SelectContent>
+          </Select>
+          <Button variant="ghost" onClick={resetFilter}>
+            Reset filter
+          </Button>
+        </div>
         <div className="overflow-hidden rounded-lg border">
           <Table>
             <TableHeader className="bg-muted sticky top-0 z-10">
@@ -323,7 +459,6 @@ export function TaskDataTable({
               )}
             </TableBody>
           </Table>
-          {/* </DndContext> */}
         </div>
         <div className="flex items-center justify-end px-4">
           <div className="flex w-full items-center gap-8 lg:w-fit">
