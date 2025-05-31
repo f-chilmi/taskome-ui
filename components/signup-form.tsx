@@ -74,7 +74,13 @@ export function SignupForm({
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
                 </div>
-                <Input name="password" id="password" type="password" required />
+                <Input
+                  name="password"
+                  id="password"
+                  type="password"
+                  required
+                  placeholder="********"
+                />
               </div>
               <div className="grid gap-3">
                 <div className="flex items-center">
@@ -85,6 +91,7 @@ export function SignupForm({
                   id="confirmPassword"
                   type="password"
                   required
+                  placeholder="********"
                 />
               </div>
               <div className="flex flex-col gap-3">

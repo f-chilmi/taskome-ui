@@ -34,3 +34,9 @@ export const userSchema = z.object({
   name: z.string(),
   email: z.string(),
 });
+export const habitSchema = z.object({
+  _id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  habitLogs: z.record(z.boolean()),
+});

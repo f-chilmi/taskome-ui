@@ -40,3 +40,22 @@ export interface Project {
   name: string;
   description?: string;
 }
+
+export interface Habit {
+  _id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  repeat: RepetitionEnum;
+  startDate?: Date | string;
+  endDate?: Date | string;
+
+  habitLogs: { [key: string]: number };
+}
+
+export enum RepetitionEnum {
+  DAILY = "Daily",
+  WEEKLY = "Weekly",
+  MONTHLY = "Monthly",
+  CUSTOM = "Custom",
+}

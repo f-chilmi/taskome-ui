@@ -58,7 +58,13 @@ export function LoginForm({
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
                 </div>
-                <Input id="password" type="password" name="password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  name="password"
+                  required
+                  placeholder="********"
+                />
               </div>
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full">
