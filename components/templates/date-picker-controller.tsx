@@ -15,10 +15,10 @@ function DatePickerController({
   defaultValue,
   disabled,
 }: {
-  control: Control<FieldValues, any, FieldValues>;
+  control: Control<FieldValues, unknown, FieldValues>;
   name: string;
   placeholder: string;
-  defaultValue?: string;
+  defaultValue?: Date;
   disabled?: Matcher | Matcher[];
 }) {
   return (
@@ -27,7 +27,7 @@ function DatePickerController({
       name={name}
       defaultValue={defaultValue}
       render={({ field }) => (
-        <Popover>
+        <Popover modal>
           <PopoverTrigger asChild>
             <Button
               id="dueDate"
@@ -51,7 +51,7 @@ function DatePickerController({
           >
             <Calendar
               mode="single"
-              selected={field.value as any}
+              selected={field.value as Date}
               onSelect={field.onChange}
               disabled={disabled}
               initialFocus

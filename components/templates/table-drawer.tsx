@@ -6,13 +6,13 @@ import { cn } from "@/lib/utils";
 
 interface TableDrawerProps {
   buttonText: string | React.ReactNode;
-  calssName?: string;
+  className?: string;
   children: React.ReactNode;
 }
 
 const TableDrawer: React.FC<TableDrawerProps> = ({
   buttonText,
-  calssName,
+  className,
   children,
 }) => {
   const isMobile = useIsMobile();
@@ -22,7 +22,7 @@ const TableDrawer: React.FC<TableDrawerProps> = ({
       <DrawerTrigger asChild>
         <Button
           variant="link"
-          className={cn("w-fit !px-0 text-foreground text-left", calssName)}
+          className={cn("w-fit px-0 text-foreground text-left", className)}
         >
           {buttonText}
         </Button>

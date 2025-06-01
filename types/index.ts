@@ -53,6 +53,18 @@ export interface Habit {
   habitLogs: { [key: string]: number };
 }
 
+export interface Event {
+  _id: string;
+  userId: string;
+  name: string;
+  color: string;
+  disabledHabitIds: string[];
+  note?: string;
+  dates: Date[];
+  startDate?: Date;
+  endDate?: Date;
+}
+
 export enum RepetitionEnum {
   DAILY = "Daily",
   WEEKLY = "Weekly",

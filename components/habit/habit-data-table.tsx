@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import * as React from "react";
@@ -12,8 +13,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { z } from "zod";
-
 import {
   Table,
   TableBody,
@@ -22,64 +21,55 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { habitSchema } from "@/types/schemas";
 import { format, getDaysInMonth, setDate } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Input } from "../ui/input";
 import TableDrawer from "../templates/table-drawer";
-import { Label } from "../ui/label";
-import { Button } from "../ui/button";
-import {
-  DrawerClose,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "../ui/drawer";
-import { Textarea } from "../ui/textarea";
-import { Trash2 } from "lucide-react";
-import { RowData } from "@tanstack/react-table";
-import "@tanstack/react-table";
-import { Habit, RepetitionEnum } from "@/types";
-import { Controller } from "react-hook-form";
-import EventForm from "./event-form";
-
-declare module "@tanstack/react-table" {
-  interface ColumnMeta<TData extends RowData, TValue> {
-    className: string;
-  }
-}
+import { Event, Habit, RepetitionEnum } from "@/types";
+import ActivityForm from "./forms/activity-form";
+import EventForm from "./forms/event-form";
 
 export function HabitDataTable({
   selectedDate,
   data: initialData,
+  events,
   updateLog,
   createHabit,
   deleteHabit,
+  createEvent,
 }: {
   selectedDate: Date;
   data: Habit[];
+  events: Event[];
   updateLog: (payload: string) => void;
   createHabit: (payload: string) => void;
+  createEvent: (payload: string) => void;
   deleteHabit: (id: string) => void;
 }) {
-  const [data, setData] = React.useState<Habit[]>([]);
-
-  React.useEffect(() => {
-    setData([
-      ...initialData,
-      {
-        _id: "new",
-        userId: "",
-        name: "",
-        repeat: RepetitionEnum.DAILY,
-        habitLogs: {},
-      },
-    ]);
+  // const [data, setData] = React.useState<Habit[]>([]);
+  // console.log(data);
+  // React.useEffect(() => {
+  //   const newData: Habit = {
+  //     _id: "new",
+  //     userId: "",
+  //     name: "new",
+  //     repeat: RepetitionEnum.DAILY,
+  //     habitLogs: {},
+  //   };
+  //   setData([...initialData, newData]);
+  // }, [initialData]);
+  const data = React.useMemo(() => {
+    const newRow: Habit = {
+      _id: "new",
+      userId: "",
+      name: "new",
+      repeat: RepetitionEnum.DAILY,
+      habitLogs: {},
+    };
+    return [...initialData, newRow];
   }, [initialData]);
 
-  const columns = React.useMemo<
-    ColumnDef<z.infer<typeof habitSchema>>[]
-  >(() => {
+  const columns = React.useMemo<ColumnDef<Habit>[]>(() => {
     const onCreateHabit = (name: string) =>
       createHabit(JSON.stringify({ name }));
     const onUpdateLog = (habitId: string, date: number, isChecked: boolean) => {
@@ -96,7 +86,7 @@ export function HabitDataTable({
       updateLog(JSON.stringify(payload));
     };
     const dateColumns = Array.from(
-      { length: getDaysInMonth(new Date()) },
+      { length: getDaysInMonth(selectedDate) },
       (_, i) => {
         const day = i + 1;
         return {
@@ -105,9 +95,9 @@ export function HabitDataTable({
           header: () => {
             const date = setDate(selectedDate, day);
             const dayLetter = format(date, "EE").toLowerCase();
+
             return (
               <TableDrawer
-                calssName="px-2"
                 buttonText={
                   <div className="flex flex-col items-center ">
                     <span className="text-[10px] text-gray-400">
@@ -117,22 +107,38 @@ export function HabitDataTable({
                   </div>
                 }
               >
-                <EventForm day={setDate(selectedDate, day)} />
+                <EventForm
+                  events={events}
+                  day={setDate(selectedDate, day)}
+                  habits={initialData}
+                  createEvent={createEvent}
+                />
               </TableDrawer>
             );
           },
 
-          cell: ({ row }) => {
+          cell: ({ row }: { row: any }) => {
+            const date = setDate(selectedDate, day);
             const isChecked = row.original.habitLogs[day];
+            let isDisabled = false;
+
+            const currentEvent = getTodayEvent(date, events);
+            if (currentEvent?.disabledHabitIds.includes(row.original._id))
+              isDisabled = true;
+            else if (row.original._id === "new") isDisabled = true;
+            else isDisabled = false;
+
             return (
-              <ButtonCheck
-                isChecked={isChecked}
-                disabled={row.original._id === "new"}
-                className="flex justify-self-center"
-                onUpdateLog={() => {
-                  onUpdateLog(row.original._id, day, !isChecked);
-                }}
-              />
+              <div style={{ background: currentEvent?.color }}>
+                <ButtonCheck
+                  isChecked={isChecked}
+                  disabled={isDisabled}
+                  className="flex justify-self-center disabled:cursor-not-allowed"
+                  onUpdateLog={() => {
+                    onUpdateLog(row.original._id, day, !isChecked);
+                  }}
+                />
+              </div>
             );
           },
         };
@@ -142,7 +148,8 @@ export function HabitDataTable({
     return [
       {
         id: "name",
-        accessorKey: "name",
+        // accessorKey: "name",
+        accessorFn: (row) => row.name,
         enablePinning: true,
         header: "Activity",
         meta: {
@@ -165,42 +172,8 @@ export function HabitDataTable({
               />
             );
           return (
-            <TableDrawer calssName="px-2" buttonText={row.original.name}>
-              <form className="flex flex-col gap-4">
-                <DrawerHeader className="gap-1 flex flex-row items-center justify-between">
-                  <DrawerTitle>{row.original.name}</DrawerTitle>
-                  <DrawerClose asChild>
-                    <Trash2
-                      color="red"
-                      className="cursor-pointer"
-                      onClick={() => deleteHabit(row.original._id)}
-                    />
-                  </DrawerClose>
-                </DrawerHeader>
-                <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
-                  <div className="flex flex-col gap-3">
-                    <Label htmlFor="name">Activity Name</Label>
-                    <Input id="name" defaultValue={row.original.name} />
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      placeholder="Type your description here."
-                      id="description"
-                      className="min-h-0 h-auto"
-                      defaultValue={row.original.description}
-                      rows={5}
-                    />
-                  </div>
-                </div>
-
-                <DrawerFooter>
-                  <Button type="submit">Submit</Button>
-                  <DrawerClose asChild>
-                    <Button variant="outline">Close</Button>
-                  </DrawerClose>
-                </DrawerFooter>
-              </form>
+            <TableDrawer className="px-2" buttonText={row.original.name}>
+              <ActivityForm deleteHabit={deleteHabit} row={row} />
             </TableDrawer>
           );
         },
@@ -208,15 +181,20 @@ export function HabitDataTable({
       },
       ...dateColumns,
     ];
-  }, []);
-
+  }, [initialData, selectedDate, events]);
+  console.log(data);
   const table = useReactTable({
     data,
     columns,
-    state: {},
-    getRowId: (row) => row._id.toString(),
+    state: {
+      pagination: {
+        pageIndex: 0,
+        pageSize: data.length,
+      },
+    },
     enableRowSelection: true,
     enableColumnPinning: true,
+    getRowId: (row) => row._id,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -239,7 +217,7 @@ export function HabitDataTable({
                         key={header.id}
                         colSpan={header.colSpan}
                         className={
-                          header.column.columnDef.meta?.className ?? ""
+                          (header.column.columnDef.meta as any)?.className ?? ""
                         }
                       >
                         {header.isPlaceholder
@@ -265,7 +243,9 @@ export function HabitDataTable({
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className={cell.column.columnDef.meta?.className ?? ""}
+                        className={
+                          (cell.column.columnDef.meta as any)?.className ?? ""
+                        }
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -317,4 +297,18 @@ function ButtonCheck({
       )}
     ></button>
   );
+}
+
+function getTodayEvent(date: Date, events: Event[]) {
+  const todayStr = date.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+
+  const todayEvent = events.find((e) =>
+    e.dates.some((d) => new Date(d).toISOString().slice(0, 10) === todayStr)
+  );
+
+  if (todayEvent) {
+    return todayEvent;
+  }
+
+  return null;
 }
